@@ -1,0 +1,24 @@
+# Project documentation (reference only, not for submission)
+PROJECT_REQUIREMENTS.md
+
+# Compiled binaries
+parallel_lr
+*.o
+*.out
+
+# Test executables
+tests/test_*
+
+# Results and temporary files
+*.log
+*.txt
+__pycache__/
+*.pyc
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Backup files
+*_broken.*
+*.bak
+*~

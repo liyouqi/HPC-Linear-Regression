@@ -1,0 +1,74 @@
+#!/bin/bash
+#PBS -N gd_experiment
+#PBS -q shortHPC4DS
+#PBS -l select=1:ncpus=8:mem=4gb
+#PBS -l walltime=00:15:00
+#PBS -o gd_experiment.log
+#PBS -j oe
+
+# Load MPI module
+module load gompi/2023a
+
+# Navigate to project directory
+cd $PBS_O_WORKDIR
+
+# Experiment parameters
+N=100000
+D=100
+SEED=42
+ITERATIONS=1000
+LEARNING_RATE=0.01
+PROCESSES="1 2 4 8"
+RUNS=5
+
+# Results directory
+RESULTS_DIR="results"
+mkdir -p $RESULTS_DIR
+
+# Output CSV file
+CSV_FILE="${RESULTS_DIR}/gd_strong_scaling.csv"
+echo "run,processes,time_seconds" > $CSV_FILE
+
+echo "=== Starting GD Strong Scaling Experiment ==="
+echo "Problem size: n=$N, d=$D"
+echo "Iterations: $ITERATIONS, Learning rate: $LEARNING_RATE"
+echo "Processes: $PROCESSES"
+echo "Runs per configuration: $RUNS"
+echo "Results will be saved to: $RESULTS_DIR"
+echo ""
+
+# Run experiments
+for P in $PROCESSES; do
+    echo "Running with p=$P processes..."
+    
+    for RUN in $(seq 1 $RUNS); do
+        echo "  Run $RUN/$RUNS..."
+        
+        # Output file for this run
+        OUTPUT_FILE="${RESULTS_DIR}/gd_n${N}_d${D}_p${P}_run${RUN}.txt"
+        
+        # Run the experiment
+        mpirun -np $P ./parallel_lr \
+            -a gd \
+            -n $N \
+            -d $D \
+            -s $SEED \
+            -i $ITERATIONS \
+            -l $LEARNING_RATE \
+            > $OUTPUT_FILE
+        
+        # Extract timing data and append to CSV
+        TIME=$(tail -1 $OUTPUT_FILE | cut -d',' -f5)
+        echo "$RUN,$P,$TIME" >> $CSV_FILE
+        
+        echo "    Completed in $TIME seconds"
+    done
+    echo ""
+done
+
+echo "=== Experiment Complete ==="
+echo "Results saved to:"
+echo "  - Individual runs: ${RESULTS_DIR}/gd_n${N}_d${D}_p*_run*.txt"
+echo "  - Aggregated data: $CSV_FILE"
+echo ""
+echo "To analyze results, run the analysis.ipynb notebook"

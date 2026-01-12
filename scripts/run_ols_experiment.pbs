@@ -1,0 +1,74 @@
+#!/bin/bash
+#PBS -N ols_experiment
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=00:30:00
+#PBS -q shortHPC4DS
+#PBS -j oe
+#PBS -o ols_experiment.log
+
+# Full Strong Scaling Experiment for OLS
+# Runs p=1,2,4,8 with 5 repetitions each
+
+cd $PBS_O_WORKDIR
+cd ..
+
+# Load required modules
+module load gompi/2023a
+
+# Create results directory
+mkdir -p results
+
+# Print job info
+echo "=== Strong Scaling Experiment - OLS ==="
+echo "Job ID: $PBS_JOBID"
+echo "Hostname: $(hostname)"
+echo "Date: $(date)"
+echo "Problem size: n=100000, d=100"
+echo "Repetitions: 5"
+echo "=========================================="
+echo ""
+
+# Array of process counts
+PROCS=(1 2 4 8)
+REPETITIONS=5
+
+# Run experiments
+for NPROCS in "${PROCS[@]}"; do
+    echo ">>> Testing with $NPROCS processes <<<"
+    
+    for REP in $(seq 1 $REPETITIONS); do
+        echo "  Run $REP/$REPETITIONS..."
+        
+        # Run and save output
+        OUTPUT_FILE="results/ols_n100000_d100_p${NPROCS}_run${REP}.txt"
+        mpirun -np $NPROCS ./parallel_lr > "$OUTPUT_FILE" 2>&1
+        
+        # Extract timing from output
+        TIME=$(grep "time_seconds" "$OUTPUT_FILE" | tail -1 | cut -d',' -f4)
+        echo "    Time: ${TIME}s"
+    done
+    echo ""
+done
+
+# Extract all timing data to CSV
+echo "=== Extracting timing data to CSV ==="
+CSV_FILE="results/ols_strong_scaling.csv"
+echo "run,processes,time_seconds" > "$CSV_FILE"
+
+for NPROCS in "${PROCS[@]}"; do
+    for REP in $(seq 1 $REPETITIONS); do
+        OUTPUT_FILE="results/ols_n100000_d100_p${NPROCS}_run${REP}.txt"
+        if [ -f "$OUTPUT_FILE" ]; then
+            TIME=$(grep "time_seconds" "$OUTPUT_FILE" | tail -1 | cut -d',' -f4)
+            echo "$REP,$NPROCS,$TIME" >> "$CSV_FILE"
+        fi
+    done
+done
+
+echo ""
+echo "=== Summary ==="
+echo "Results saved to results/ directory"
+echo "CSV file: $CSV_FILE"
+cat "$CSV_FILE"
+echo ""
+echo "=== Experiment completed at $(date) ==="
