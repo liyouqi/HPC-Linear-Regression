@@ -1,0 +1,30 @@
+=== Parallel Linear Regression (GD) ===
+Problem size: n=100000, d=100
+Random seed: 42
+GD iterations: 1000
+Learning rate: 0.010000
+MPI processes: 4
+=========================================
+
+[Rank 0] Generating synthetic data...
+[Data] Generated synthetic data: n=100000, d=100, seed=42
+[Data] True beta range: [3.90, 4.03]
+[Data] Signal std: 26.9767, Noise level: 2.6977 (SNR ~20dB)
+[Rank 0] Data generation complete.
+
+
+=== Results ===
+Execution time: 4.545864 seconds
+
+Computed beta (first 5):
+  beta[0] = 3.905886
+  beta[1] = 4.008859
+  beta[2] = -2.471159
+  beta[3] = 2.113091
+  beta[4] = 0.421765
+
+Error ||beta_true - beta_computed|| = 7.676612e-02
+
+=== CSV Output ===
+algorithm,n,d,processes,time_seconds
+gd,100000,100,4,4.545864

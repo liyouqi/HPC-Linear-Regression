@@ -11,7 +11,7 @@ tests/test_*
 
 # Results and temporary files
 *.log
-*.txt
+# *.txt
 __pycache__/
 *.pyc
 

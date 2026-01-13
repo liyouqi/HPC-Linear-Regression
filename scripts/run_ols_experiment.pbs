@@ -45,6 +45,9 @@ for NPROCS in "${PROCS[@]}"; do
         
         # Extract timing from output
         TIME=$(grep "time_seconds" "$OUTPUT_FILE" | tail -1 | cut -d',' -f4)
+        # TIME=$(grep '^ols,' "$OUTPUT_FILE" | tail -1 | cut -d',' -f5)
+        # TIME=$(awk -F',' '$1=="ols"{t=$5} END{print t}' "$OUTPUT_FILE" | tr -d '[:space:]\r')
+        # TIME=$(tail -n 1 "$OUTPUT_FILE" | cut -d',' -f5)
         echo "    Time: ${TIME}s"
     done
     echo ""
@@ -59,7 +62,8 @@ for NPROCS in "${PROCS[@]}"; do
     for REP in $(seq 1 $REPETITIONS); do
         OUTPUT_FILE="results/ols_n100000_d100_p${NPROCS}_run${REP}.txt"
         if [ -f "$OUTPUT_FILE" ]; then
-            TIME=$(grep "time_seconds" "$OUTPUT_FILE" | tail -1 | cut -d',' -f4)
+            # TIME=$(grep "time_seconds" "$OUTPUT_FILE" | tail -1 | cut -d',' -f4)
+            TIME=$(tail -n 1 "$OUTPUT_FILE" | cut -d',' -f5)
             echo "$REP,$NPROCS,$TIME" >> "$CSV_FILE"
         fi
     done

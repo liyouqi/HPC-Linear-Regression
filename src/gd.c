@@ -145,10 +145,12 @@ void gd_parallel(
             local_error[i] = local_y_pred[i] - local_y[i];
         }
         
-        // 4. Compute local gradient: local_gradient = local_X^T * local_error
+        // 4. Compute local gradient: local_gradient = local_X^T * local_error (row-major traversal)
         for (int j = 0; j < d; j++) {
             local_gradient[j] = 0.0;
-            for (int i = 0; i < local_n; i++) {
+        }
+        for (int i = 0; i < local_n; i++) {
+            for (int j = 0; j < d; j++) {
                 local_gradient[j] += local_X[i * d + j] * local_error[i];
             }
         }

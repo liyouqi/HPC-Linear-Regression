@@ -106,17 +106,45 @@ void ols_parallel(
                  local_y, local_n, MPI_DOUBLE,
                  0, comm);
     
-    // Step 7: Compute local XtX and Xty
-    double *local_XtX = (double *)malloc(d * d * sizeof(double));
-    double *local_Xty = (double *)malloc(d * sizeof(double));
+    // // Step 7: Compute local XtX and Xty
+    // double *local_XtX = (double *)malloc(d * d * sizeof(double));
+    // double *local_Xty = (double *)malloc(d * sizeof(double));
     
+    // // Compute local XtX = local_X^T * local_X
+    // for (int i = 0; i < d; i++) {
+    //     for (int j = 0; j < d; j++) {
+    //         local_XtX[i * d + j] = 0.0;
+    //         for (int k = 0; k < local_n; k++) {
+    //             local_XtX[i * d + j] += local_X[k * d + i] * local_X[k * d + j];
+    //         }
+    //     }
+    // }
+    // Step 7: Compute local XtX and Xty
+    // Initialize matrices to zero first
+    // usage of calloc is safer/cleaner, or manual loop initialization
+    double *local_XtX = (double *)calloc(d * d, sizeof(double));
+    double *local_Xty = (double *)calloc(d, sizeof(double));
+
     // Compute local XtX = local_X^T * local_X
-    for (int i = 0; i < d; i++) {
-        for (int j = 0; j < d; j++) {
-            local_XtX[i * d + j] = 0.0;
-            for (int k = 0; k < local_n; k++) {
-                local_XtX[i * d + j] += local_X[k * d + i] * local_X[k * d + j];
+    // Optimization: Iterate k (rows) in the outer loop for sequential memory access
+    for (int k = 0; k < local_n; k++) {
+        for (int i = 0; i < d; i++) {
+            // Cache the value from the i-th column of the current row
+            double val_i = local_X[k * d + i]; 
+            
+            // Inner loop updates the i-th row of the result matrix
+            for (int j = 0; j < d; j++) {
+                local_XtX[i * d + j] += val_i * local_X[k * d + j];
             }
+        }
+    }
+
+    // Compute local Xty = local_X^T * local_y
+    // Optimization: Same strategy, iterate k outside
+    for (int k = 0; k < local_n; k++) {
+        double y_val = local_y[k]; // Read y value once per row
+        for (int i = 0; i < d; i++) {
+            local_Xty[i] += local_X[k * d + i] * y_val;
         }
     }
     

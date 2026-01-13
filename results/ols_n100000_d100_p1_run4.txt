@@ -1,0 +1,28 @@
+=== Parallel Linear Regression (OLS) ===
+Problem size: n=100000, d=100
+Random seed: 42
+MPI processes: 1
+=========================================
+
+[Rank 0] Generating synthetic data...
+[Data] Generated synthetic data: n=100000, d=100, seed=42
+[Data] True beta range: [3.90, 4.03]
+[Data] Signal std: 26.9767, Noise level: 2.6977 (SNR ~20dB)
+[Rank 0] Data generation complete.
+
+
+=== Results ===
+Execution time: 0.373019 seconds
+
+Computed beta (first 5):
+  beta[0] = 3.906056
+  beta[1] = 4.009114
+  beta[2] = -2.471331
+  beta[3] = 2.113203
+  beta[4] = 0.421828
+
+Error ||beta_true - beta_computed|| = 7.660966e-02
+
+=== CSV Output ===
+algorithm,n,d,processes,time_seconds
+ols,100000,100,1,0.373019
